@@ -1,0 +1,22 @@
+# Define Port
+PORT="3030"
+
+# Define Database
+DB_HOST="127.0.0.1"
+DB_NAME="health"
+DB_USER="postgres"
+DB_PASSWORD="admin"
+DB_PORT="5432"
+DB_DIALECT="postgres"
+
+# Define JWT Key
+JWT_SIGNATURE_KEY="c987c8f1ebb6e3f61723c82442f1bab9d72a5859e90422b7eb43ad6f5bc83bbeqwadsdqwerty1234a2"
+
+# Define Salt
+SALT="d@PBudov0Hd3q9dd+ap)8CptzIjPmxed!Xdz_B!bZEJIHe075(vzTkbDM*MKf.uwEG+Np2gZQOjKikDs2.1s-#h(oHA2r@w3nm=m"
+
+# Define Google API Key
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GOOGLE_REDIRECT_URL="https://developers.google.com/oauthplayground"
+GOOGLE_REFRESH_TOKEN=""
