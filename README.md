@@ -1,14 +1,14 @@
 # Init for starting
-npm install
+npm install \
 pnpm install
 
 # Install Sequelize Cli Global
-npm install -g sequelize-cli 
+npm install -g sequelize-cli \
 pnpm add -g sequelize-cli
 
 # Migrate database
 npx sequelize-cli db:migrate
 
 # Running Project
-npm dev 
+npm dev \
 pnpm dev
