@@ -115,10 +115,10 @@ class AuthController {
         { 
           token, 
           user : {
-            id: user.user_id,
-            name: user.name,
-            email: user.email,
-            role: user.role
+            id: userIsExist.user_id,
+            name: userIsExist.name,
+            email: userIsExist.email,
+            role: userIsExist.role
           }
         }, "Berhasil masuk", res.statusCode));
     } catch (error) {
