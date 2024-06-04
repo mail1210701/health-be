@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class user extends Model {
+  class disease_restriction extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,31 +11,34 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.hasOne(models.role, {
+      this.belongsTo(models.disease, {
         foreignKey: {
-          name: "role_id"
+          name: "disease_id"
+        },
+      })
+
+      this.belongsTo(models.fruit, {
+        foreignKey: {
+          name: "fruit_id"
         },
       })
     }
   }
-  user.init({
-    user_id: {
+  disease_restriction.init({
+    disease_restriction_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
       autoIncrement: true
     },
-    name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
-    is_active: DataTypes.BOOLEAN,
-    role_id: DataTypes.INTEGER
+    fruit_id: DataTypes.INTEGER,
+    disease_id: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'user',
+    modelName: 'disease_restriction',
   });
-  
-  user.removeAttribute("id");
 
-  return user;
+  disease_restriction.removeAttribute("id");
+
+  return disease_restriction;
 };

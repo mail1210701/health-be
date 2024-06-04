@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const responseFormatter = require("../helpers/responseFormatter");
 const sendMail = require("../helpers/email");
-const { User, Role } = require("../models");
+const { user, role } = require("../models");
 
 class AuthController {
   static register = async (req, res) => {
@@ -16,20 +16,20 @@ class AuthController {
       } = req.body;
       const clearEmail = email.toLowerCase();
 
-      const emailExist = await User.findOne({ where: { email: email } });
+      const emailExist = await user.findOne({ where: { email: email } });
 
       if (emailExist) {
         return res
           .status(409)
           .json(
-            responseFormatter.error(null, "Email already exist", res.statusCode)
+            responseFormatter.error(null, "Email sudah terdaftar", res.statusCode)
           );
       }
 
       const salt = process.env.SALT;
       const encryptedPassword = await bcrypt.hash(password + salt, 10);
 
-      const user = await User.create({
+      const userResponse = await user.create({
         name: name,
         email: clearEmail,
         password: encryptedPassword,
@@ -38,9 +38,9 @@ class AuthController {
       });
 
       const userData = {
-        id: user.dataValues.user_id,
-        name: user.dataValues.name,
-        email: user.dataValues.email
+        id: userResponse.dataValues.user_id,
+        name: userResponse.dataValues.name,
+        email: userResponse.dataValues.email
       };
 
       const mailOptions = {
@@ -59,7 +59,7 @@ class AuthController {
         .json(
           responseFormatter.success(
             userData,
-            "User created",
+            "Berhasil membuat pengguna",
             res.statusCode
           )
         );
@@ -76,7 +76,7 @@ class AuthController {
       const clearEmail = email.toLowerCase();
       const salt = process.env.SALT;
       
-      const user = await User.findOne(
+      const userIsExist = await user.findOne(
       { 
         where: { email: clearEmail } ,
         attributes: {
@@ -84,31 +84,31 @@ class AuthController {
         },
         include: [
           {
-            model: Role,
+            model: role,
             attributes: ["role_id", "role_name"],
           }
         ],
       }
       );
       
-      if (!user) {
-        return res.status(404).json(responseFormatter.error(null, "User not foud!", res.statusCode));
+      if (!userIsExist) {
+        return res.status(404).json(responseFormatter.error(null, "Pengguna tidak ditemukan", res.statusCode));
       }
       
-      if(!user.is_active) {
-        return res.status(401).json(responseFormatter.error(null, "Your account is not active, please check your email!", res.statusCode));
+      const isMatch = await bcrypt.compare(password + salt, userIsExist.password);
+      if (!isMatch) {
+        return res.status(401).json(responseFormatter.error(null, "Email atau password salah", res.statusCode));
       }
 
-      const isMatch = await bcrypt.compare(password + salt, user.password);
-
-      if (!isMatch) {
-        return res.status(401).json(responseFormatter.error(null, "email or password doesn't match!", res.statusCode));
+      if(!userIsExist.is_active) {
+        return res.status(401).json(responseFormatter.error(null, "Akun anda belum aktif, silahkan cek email untuk melakukan aktivasi akun", res.statusCode));
       }
 
       const token = jwt.sign({
-        name: user.name,
-        email: user.email,
-        role: user.role
+        user_id: userIsExist.user_id,
+        name: userIsExist.name,
+        email: userIsExist.email,
+        role: userIsExist.role
       }, process.env.JWT_SIGNATURE_KEY);
 
       return res.status(200).json(responseFormatter.success(
@@ -120,7 +120,7 @@ class AuthController {
             email: user.email,
             role: user.role
           }
-        }, "Authenticated", res.statusCode));
+        }, "Berhasil masuk", res.statusCode));
     } catch (error) {
       return res.status(500).json(responseFormatter.error(null, error.message, res.statusCode));
     }
@@ -131,13 +131,13 @@ class AuthController {
       const { token } = req.body;
       const userId = JSON.parse(atob(token)).id
 
-      const employee = await User.findByPk(userId);
+      const userIsExist = await user.findByPk(userId);
 
-      if (!employee) {
-        return res.status(404).json(responseFormatter.error(employee, "User not found", res.statusCode));
+      if (!userIsExist) {
+        return res.status(404).json(responseFormatter.error(userIsExist, "Pengguna tidak ditemukan", res.statusCode));
       }
 
-      const retrivied = await User.update({
+      const retrivied = await user.update({
         is_active: true
       }, {
         where: {
@@ -145,7 +145,7 @@ class AuthController {
         }
       });
 
-      return res.status(200).json(responseFormatter.success(retrivied, "your account has been successfully activate", res.statusCode));
+      return res.status(200).json(responseFormatter.success(retrivied, "Akun anda berhasil di aktivasi", res.statusCode));
     } catch (error) {
       return res.status(500).json(responseFormatter.error(null, error.message, res.statusCode));
     }
@@ -156,27 +156,27 @@ class AuthController {
       const { email } = req.body;
       const clearEmail = email.toLowerCase();
 
-      const emailExist = await User.findOne({ 
+      const userIsExist = await user.findOne({ 
         where: { email: clearEmail },
         attributes: {
           exclude: ["is_active", "password", "createdAt", "updatedAt"]
         }
       });
 
-      if (!emailExist) {
-        return res.status(404).json(responseFormatter.error(emailExist, "Email not registered", res.statusCode));
+      if (!userIsExist) {
+        return res.status(404).json(responseFormatter.error(userIsExist, "Email tidak terdaftar", res.statusCode));
       } 
 
       const mailOptions = {
         from: "BAGUS.10119064 <bagus.10119064@mahasiswa.unikom.ac.id>",
         to: email,
         subject: "Reset Password",
-        html: `<p>Click this link to reset your password <a href="http://localhost:5173/reset-password?token=${btoa(JSON.stringify(emailExist))}">Reset Password</a></p>`
+        html: `<p>Click this link to reset your password <a href="http://localhost:5173/reset-password?token=${btoa(JSON.stringify(userIsExist))}">Reset Password</a></p>`
       };
 
       sendMail(mailOptions);
 
-      return res.status(200).json(responseFormatter.success(emailExist, "link to reset password has been sent to your email", res.statusCode));
+      return res.status(200).json(responseFormatter.success(userIsExist, "Tautan untuk melakukan perubahan password telah di kirim ke email", res.statusCode));
     } catch (error) {
       return res.status(500).json(responseFormatter.error(null, error.message, res.statusCode));
     }
@@ -187,20 +187,20 @@ class AuthController {
       const { token, password } = req.body;
       const userId = JSON.parse(atob(token)).user_id;
 
-      const employee = await User.findByPk(userId, {
+      const userIsExist = await user.findByPk(userId, {
         attributes: {
           exclude: ["is_active", "password", "createdAt", "updatedAt"]
         }
       });
 
-      if (!employee) {
-        return res.status(404).json(responseFormatter.error(employee, "User not found", res.statusCode));
+      if (!userIsExist) {
+        return res.status(404).json(responseFormatter.error(userIsExist, "Pengguna tidak ditemukan", res.statusCode));
       }
 
       const salt = process.env.SALT;
       const encryptedPassword = await bcrypt.hash(password + salt, 10);
 
-      await User.update({
+      await user.update({
         password: encryptedPassword,
       }, {
         where: {
@@ -208,7 +208,7 @@ class AuthController {
         }
       });
 
-      return res.status(200).json(responseFormatter.success(employee, "your password has been successfully changed", res.statusCode));
+      return res.status(200).json(responseFormatter.success(employee, "Password anda berhasil diperbaharui", res.statusCode));
     } catch (error) {
       return res.status(500).json(responseFormatter.error(null, error.message, res.statusCode));
     }

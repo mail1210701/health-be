@@ -14,11 +14,20 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   allergy.init({
+    allergy_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true
+    },
     allergy_name: DataTypes.STRING,
     user_id: DataTypes.INTEGER
   }, {
     sequelize,
-    modelName: 'Allergy',
+    modelName: 'allergy',
   });
+
+  allergy.removeAttribute("id");
+
   return allergy;
 };

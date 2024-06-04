@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const responseFormatter = require("../helpers/responseFormatter");
 
-const auth = (req, res, next) => {
+const authJWT = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
   if (authHeader){
@@ -22,4 +22,4 @@ const auth = (req, res, next) => {
   }
 }
 
-module.exports = auth;
+module.exports = authJWT;
