@@ -1,8 +1,71 @@
 const responseFormatter = require("../helpers/responseFormatter");
 const getUser = require("../helpers/getUser");
-const { history_disease, disease, allergy } =  require("../models");
+const { user, role, history_disease, disease, allergy, fruit } =  require("../models");
 
 class UserController {
+  static getProfile = async (req, res) => {
+    try {
+      const userJWT = await getUser(req, res)
+
+      const userData = await user.findOne({
+        include: [
+          {
+            model: role,
+            attributes:{
+              exclude: ["createdAt", "updatedAt"]
+            },
+          },
+          {
+            model: history_disease,
+            attributes:{
+              exclude: ["createdAt", "updatedAt", "disease_id", "user_id"]
+            },
+            include: [
+              {
+                model: disease,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt"]
+                },
+              }
+            ]
+          },
+          {
+            model: allergy,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "user_id", "fruit_id"]
+            },
+            include: [
+              {
+                model: fruit,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt", "user_id"]
+                },
+              }
+            ]
+          }
+        ],
+        attributes: {
+          exclude: ["password", "is_active", "role_id"]
+        },
+        where: {
+          user_id: userJWT.user_id
+        }
+      })
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.success(
+            userData,
+            "Data riwayat penyakit berhasil ditambahkan",
+            res.statusCode
+          )
+        );
+    } catch (error) {
+      
+    }
+  }
+
   static diseaseUser = async (req, res) => {
     try {
       const { diseases } = req.body;
@@ -67,10 +130,10 @@ class UserController {
         where: {
           user_id: userData.user_id
         },
-        attributes: ['allergy_name']
+        attributes: ['fruit_id']
       })
-      const requestedAllergies = allergies.map(({ allergy_name }) => allergy_name);
-      const existingAllergies = allergyUserIsExist.map(({ allergy_name }) => allergy_name)
+      const requestedAllergies = allergies.map(({ fruit_id }) => fruit_id);
+      const existingAllergies = allergyUserIsExist.map(({ fruit_id }) => fruit_id)
 
       for (const requestedAllergy of requestedAllergies) {
         if (existingAllergies.includes(requestedAllergy)) {
@@ -83,8 +146,8 @@ class UserController {
       }
 
       const mapAllergyUser = allergies.map(
-        ({ allergy_name }) => ({
-          allergy_name,
+        ({ fruit_id }) => ({
+          fruit_id,
           user_id: userData.user_id,
         })
       );

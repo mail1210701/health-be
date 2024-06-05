@@ -16,6 +16,18 @@ module.exports = (sequelize, DataTypes) => {
           name: "role_id"
         },
       })
+
+      this.hasMany(models.history_disease, {
+        foreignKey: {
+          name: "user_id"
+        },
+      })
+
+      this.hasMany(models.allergy, {
+        foreignKey: {
+          name: "user_id"
+        },
+      })
     }
   }
   user.init({

@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
           name: "fruit_id"
         },
       })
+
+      this.hasMany(models.allergy, {
+        foreignKey: {
+          name: "fruit_id"
+        },
+      })
     }
   }
   fruit.init({

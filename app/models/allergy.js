@@ -11,6 +11,17 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      this.belongsTo(models.user, {
+        foreignKey: {
+          name: "user_id"
+        },
+      })
+
+      this.hasMany(models.fruit, {
+        foreignKey: {
+          name: "fruit_id"
+        },
+      })
     }
   }
   allergy.init({
@@ -20,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true
     },
-    allergy_name: DataTypes.STRING,
+    fruit_id: DataTypes.INTEGER,
     user_id: DataTypes.INTEGER
   }, {
     sequelize,
