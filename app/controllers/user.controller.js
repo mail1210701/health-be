@@ -68,53 +68,76 @@ class UserController {
 
   static diseaseUser = async (req, res) => {
     try {
-      const { diseases } = req.body;
+      const diseases = req.body;
       const userData = await getUser(req, res)
 
-      const diseaseUserIsExist = await history_disease.findAll({
-        where: {
+      // const diseaseUserIsExist = await history_disease.findAll({
+      //   where: {
+      //     user_id: userData.user_id
+      //   },
+      //   attributes: ['disease_id']
+      // })
+      // const requestedDiseases = diseases.map(({ disease_id }) => disease_id);
+      // const existingDiseases = diseaseUserIsExist.map(({ disease_id }) => disease_id)
+
+      // for (const requestedDisease of requestedDiseases) {
+      //   if (existingDiseases.includes(requestedDisease)) {
+      //     return res
+      //     .status(409)
+      //     .json(
+      //       responseFormatter.error(null, "Data riwayat penyakit sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
+      //     );
+      //   }
+      // }
+
+      const removeExistingHistoryDisease = await history_disease.destroy({
+        where:{
           user_id: userData.user_id
-        },
-        attributes: ['disease_id']
-      })
-      const requestedDiseases = diseases.map(({ disease_id }) => disease_id);
-      const existingDiseases = diseaseUserIsExist.map(({ disease_id }) => disease_id)
-
-      for (const requestedDisease of requestedDiseases) {
-        if (existingDiseases.includes(requestedDisease)) {
-          return res
-          .status(409)
-          .json(
-            responseFormatter.error(null, "Data riwayat penyakit sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
-          );
         }
-      }
-      
-      const mapDiseaseUser = diseases.map(
-        ({ disease_id }) => ({
-          disease_id,
-          user_id: userData.user_id,
-        })
-      );
+      })
 
-      const retriviedDiseaseHistory = await history_disease.bulkCreate(mapDiseaseUser);
-      
-      if(retriviedDiseaseHistory) {
-        return res
-          .status(200)
-          .json(
-            responseFormatter.success(
-              retriviedDiseaseHistory,
-              "Data riwayat penyakit berhasil ditambahkan",
-              res.statusCode
-            )
-          );
+      if(removeExistingHistoryDisease) {
+        const mapDiseaseUser = diseases.map(
+          (disease_id) => ({
+            disease_id,
+            user_id: userData.user_id,
+          })
+        );
+  
+        const retriviedHistoryDisease = await history_disease.bulkCreate(mapDiseaseUser);
+
+        if(retriviedHistoryDisease) {
+          const response = await history_disease.findAll({
+            where: {
+              user_id: userData.user_id
+            },
+            include: [
+              {
+                model: disease,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                } 
+              }
+            ],
+            attributes: ["history_disease_id"]
+          })
+
+          return res
+            .status(200)
+            .json(
+              responseFormatter.success(
+                response,
+                "Data riwayat penyakit berhasil ditambahkan",
+                res.statusCode
+              )
+            );
+        }
+          
       }
 
       throw new Error();
 
     } catch (error) {
-      console.log(error);
       return res
         .status(500)
         .json(responseFormatter.error(null, error.message, res.statusCode));
@@ -123,46 +146,74 @@ class UserController {
 
   static allergyUser = async (req, res) => {
     try {
-      const { allergies } = req.body;
+      const allergies = req.body;
       const userData = await getUser(req, res)
       
-      const allergyUserIsExist = await allergy.findAll({
-        where: {
-          user_id: userData.user_id
-        },
-        attributes: ['fruit_id']
-      })
-      const requestedAllergies = allergies.map(({ fruit_id }) => fruit_id);
-      const existingAllergies = allergyUserIsExist.map(({ fruit_id }) => fruit_id)
+      // const allergyUserIsExist = await allergy.findAll({
+      //   where: {
+      //     user_id: userData.user_id
+      //   },
+      //   attributes: ['fruit_id']
+      // })
+      // const requestedAllergies = allergies.map(({ fruit_id }) => fruit_id);
+      // const existingAllergies = allergyUserIsExist.map(({ fruit_id }) => fruit_id)
 
-      for (const requestedAllergy of requestedAllergies) {
-        if (existingAllergies.includes(requestedAllergy)) {
+      // for (const requestedAllergy of requestedAllergies) {
+      //   if (existingAllergies.includes(requestedAllergy)) {
+      //     return res
+      //       .status(409)
+      //       .json(
+      //         responseFormatter.error(null, "Data alergi sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
+      //       );
+      //   }
+      // }
+
+      const removeExistingAllergy = await allergy.destroy({
+        where:{
+          user_id: userData.user_id
+        }
+      })
+
+      if(removeExistingAllergy) {
+        const mapAllergyUser = allergies.map(
+          (fruit_id) => ({
+            fruit_id,
+            user_id: userData.user_id,
+          })
+        );
+  
+        const retriviedAllergy = await allergy.bulkCreate(mapAllergyUser);
+        
+        if(retriviedAllergy) {
+          const response = await allergy.findAll({
+            where: {
+              user_id: userData.user_id
+            },
+            include: [
+              {
+                model: fruit,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                } 
+              }
+            ],
+            attributes: ["allergy_id"]
+          })
+
           return res
-            .status(409)
+            .status(200)
             .json(
-              responseFormatter.error(null, "Data alergi sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
+              responseFormatter.success(
+                response,
+                "Data alergi berhasil ditambahkan",
+                res.statusCode
+              )
             );
         }
       }
 
-      const mapAllergyUser = allergies.map(
-        ({ fruit_id }) => ({
-          fruit_id,
-          user_id: userData.user_id,
-        })
-      );
+      throw new Error()
 
-      const retriviedDiseaseHistory = await allergy.bulkCreate(mapAllergyUser);
-
-      return res
-        .status(200)
-        .json(
-          responseFormatter.success(
-            retriviedDiseaseHistory,
-            "Data alergi berhasil ditambahkan",
-            res.statusCode
-          )
-        );
     } catch (error) {
       return res
         .status(500)
