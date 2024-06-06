@@ -71,68 +71,48 @@ class UserController {
       const diseases = req.body;
       const userData = await getUser(req, res)
 
-      // const diseaseUserIsExist = await history_disease.findAll({
-      //   where: {
-      //     user_id: userData.user_id
-      //   },
-      //   attributes: ['disease_id']
-      // })
-      // const requestedDiseases = diseases.map(({ disease_id }) => disease_id);
-      // const existingDiseases = diseaseUserIsExist.map(({ disease_id }) => disease_id)
+      const historyExist =  await checkHistoryDisease(userData)
+      if(historyExist) {
+        history_disease.destroy({
+          where:{
+            user_id: userData.user_id
+          }
+        })
+      }
 
-      // for (const requestedDisease of requestedDiseases) {
-      //   if (existingDiseases.includes(requestedDisease)) {
-      //     return res
-      //     .status(409)
-      //     .json(
-      //       responseFormatter.error(null, "Data riwayat penyakit sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
-      //     );
-      //   }
-      // }
+      const mapDiseaseUser = diseases.map(
+        (disease_id) => ({
+          disease_id,
+          user_id: userData.user_id,
+        })
+      );
 
-      const removeExistingHistoryDisease = await history_disease.destroy({
-        where:{
-          user_id: userData.user_id
-        }
-      })
+      const retriviedHistoryDisease = await history_disease.bulkCreate(mapDiseaseUser);
+      if(retriviedHistoryDisease) {
+        const response = await history_disease.findAll({
+          where: {
+            user_id: userData.user_id
+          },
+          include: [
+            {
+              model: disease,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"]
+              } 
+            }
+          ],
+          attributes: ["history_disease_id"]
+        })
 
-      if(removeExistingHistoryDisease) {
-        const mapDiseaseUser = diseases.map(
-          (disease_id) => ({
-            disease_id,
-            user_id: userData.user_id,
-          })
-        );
-  
-        const retriviedHistoryDisease = await history_disease.bulkCreate(mapDiseaseUser);
-
-        if(retriviedHistoryDisease) {
-          const response = await history_disease.findAll({
-            where: {
-              user_id: userData.user_id
-            },
-            include: [
-              {
-                model: disease,
-                attributes: {
-                  exclude: ["createdAt", "updatedAt"]
-                } 
-              }
-            ],
-            attributes: ["history_disease_id"]
-          })
-
-          return res
-            .status(200)
-            .json(
-              responseFormatter.success(
-                response,
-                "Data riwayat penyakit berhasil ditambahkan",
-                res.statusCode
-              )
-            );
-        }
-          
+        return res
+          .status(200)
+          .json(
+            responseFormatter.success(
+              response,
+              "Data riwayat penyakit berhasil ditambahkan",
+              res.statusCode
+            )
+          );
       }
 
       throw new Error();
@@ -220,5 +200,25 @@ class UserController {
         .json(responseFormatter.error(null, error.message, res.statusCode));
     }
   }
+}
+
+async function checkHistoryDisease(userData) {
+  return new Promise(async (resolve) => {
+    try {
+      const findExistingHistoryDisease = await history_disease.findOne({
+        where: {
+          user_id: userData.user_id
+        }
+      });
+
+      if (findExistingHistoryDisease) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    } catch (error) {
+      resolve(false);
+    }
+  });
 }
 module.exports = UserController
