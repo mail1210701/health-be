@@ -52,17 +52,27 @@ class UserController {
         }
       })
 
+      if(!userData) {
+        return res
+          .status(404)
+          .json(
+            responseFormatter.error(null, "Data pengguna tidak detemukan", res.statusCode)
+          );
+      }
+
       return res
         .status(200)
         .json(
           responseFormatter.success(
             userData,
-            "Data riwayat penyakit berhasil ditambahkan",
+            "Data pengguna berhasil ditampilkan",
             res.statusCode
           )
         );
     } catch (error) {
-      
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
     }
   }
 
@@ -109,7 +119,7 @@ class UserController {
           .json(
             responseFormatter.success(
               response,
-              "Data riwayat penyakit berhasil ditambahkan",
+              "Data riwayat penyakit berhasil diubah",
               res.statusCode
             )
           );
@@ -129,67 +139,49 @@ class UserController {
       const allergies = req.body;
       const userData = await getUser(req, res)
       
-      // const allergyUserIsExist = await allergy.findAll({
-      //   where: {
-      //     user_id: userData.user_id
-      //   },
-      //   attributes: ['fruit_id']
-      // })
-      // const requestedAllergies = allergies.map(({ fruit_id }) => fruit_id);
-      // const existingAllergies = allergyUserIsExist.map(({ fruit_id }) => fruit_id)
+      const allergyExist =  await checkAllergy(userData)
+      if(allergyExist) {
+        allergy.destroy({
+          where:{
+            user_id: userData.user_id
+          }
+        })
+      }
 
-      // for (const requestedAllergy of requestedAllergies) {
-      //   if (existingAllergies.includes(requestedAllergy)) {
-      //     return res
-      //       .status(409)
-      //       .json(
-      //         responseFormatter.error(null, "Data alergi sudah terdaftar, silahkan cek kembali data masukan", res.statusCode)
-      //       );
-      //   }
-      // }
+      const mapAllergyUser = allergies.map(
+        (fruit_id) => ({
+          fruit_id,
+          user_id: userData.user_id,
+        })
+      );
 
-      const removeExistingAllergy = await allergy.destroy({
-        where:{
-          user_id: userData.user_id
-        }
-      })
+      const retriviedAllergy = await allergy.bulkCreate(mapAllergyUser);
+      
+      if(retriviedAllergy) {
+        const response = await allergy.findAll({
+          where: {
+            user_id: userData.user_id
+          },
+          include: [
+            {
+              model: fruit,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"]
+              } 
+            }
+          ],
+          attributes: ["allergy_id"]
+        })
 
-      if(removeExistingAllergy) {
-        const mapAllergyUser = allergies.map(
-          (fruit_id) => ({
-            fruit_id,
-            user_id: userData.user_id,
-          })
-        );
-  
-        const retriviedAllergy = await allergy.bulkCreate(mapAllergyUser);
-        
-        if(retriviedAllergy) {
-          const response = await allergy.findAll({
-            where: {
-              user_id: userData.user_id
-            },
-            include: [
-              {
-                model: fruit,
-                attributes: {
-                  exclude: ["createdAt", "updatedAt"]
-                } 
-              }
-            ],
-            attributes: ["allergy_id"]
-          })
-
-          return res
-            .status(200)
-            .json(
-              responseFormatter.success(
-                response,
-                "Data alergi berhasil ditambahkan",
-                res.statusCode
-              )
-            );
-        }
+        return res
+          .status(200)
+          .json(
+            responseFormatter.success(
+              response,
+              "Data alergi berhasil diubah",
+              res.statusCode
+            )
+          );
       }
 
       throw new Error()
@@ -212,6 +204,26 @@ async function checkHistoryDisease(userData) {
       });
 
       if (findExistingHistoryDisease) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    } catch (error) {
+      resolve(false);
+    }
+  });
+}
+
+async function checkAllergy(userData) {
+  return new Promise(async (resolve) => {
+    try {
+      const findExistingAllergy = await allergy.findOne({
+        where: {
+          user_id: userData.user_id
+        }
+      });
+
+      if (findExistingAllergy) {
         resolve(true);
       } else {
         resolve(false);
