@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { disease, disease_restriction, fruit} = require("../models");
+const { disease, disease_restriction, drink} = require("../models");
 
 class DiseaseController {
   static getListDisease = async (req, res) => {
@@ -14,7 +14,7 @@ class DiseaseController {
             },
             include: [
               {
-                model: fruit,
+                model: drink,
                 attributes: {
                   exclude: ["createdAt", "updatedAt"]
                 },
@@ -30,9 +30,9 @@ class DiseaseController {
         description: disease.description,
         disease_restrictions: disease.disease_restrictions.map(disease_restriction => ({
           disease_restriction_id: disease_restriction.disease_restriction_id,
-          fruit: {
-            fruit_id: disease_restriction.fruit_id,
-            fruit_name: disease_restriction?.fruit?.fruit_name
+          drink: {
+            drink_id: disease_restriction.drink_id,
+            drink_name: disease_restriction?.drink?.drink_name
           }
         }))
       }))
@@ -79,8 +79,8 @@ class DiseaseController {
 
       let retriviedDiseaseRestriction
       if(retriviedDisease) {
-        const mapDiseaseRestriction = disease_restrictions.map(({ fruit_id }) => ({
-          fruit_id,
+        const mapDiseaseRestriction = disease_restrictions.map(({ drink_id }) => ({
+          drink_id,
           disease_id: retriviedDisease.disease_id
         }));
 
@@ -95,7 +95,7 @@ class DiseaseController {
               exclude: ["createdAt", "updatedAt"]
             },
             include: {
-              model: fruit,
+              model: drink,
               attributes: {
                 exclude: ["createdAt", "updatedAt"]
               }
@@ -112,9 +112,9 @@ class DiseaseController {
           description: disease.description,
           disease_restrictions: disease.disease_restrictions.map(disease_restriction => ({
             disease_restriction_id: disease_restriction.disease_restriction_id,
-            fruit: {
-              fruit_id: disease_restriction?.fruit_id,
-              fruit_name: disease_restriction?.fruit?.fruit_name
+            drink: {
+              drink_id: disease_restriction?.drink_id,
+              drink_name: disease_restriction?.drink?.drink_name
             }
           }))
         }))
@@ -179,9 +179,9 @@ class DiseaseController {
 
       let retriviedDiseaseRestriction
       if(retriviedDisease) {
-        const mapDiseaseRestriction = disease_restrictions.map(({ disease_restriction_id, fruit_id }) => ({
+        const mapDiseaseRestriction = disease_restrictions.map(({ disease_restriction_id, drink_id }) => ({
           disease_restriction_id,
-          fruit_id,
+          drink_id,
           disease_id: id
         }));
 
@@ -189,7 +189,7 @@ class DiseaseController {
           console.log(restriction.disease_restriction_id);
           await disease_restriction.update(
             {
-              fruit_id: restriction.fruit_id,
+              drink_id: restriction.drink_id,
               disease_id: restriction.disease_id 
             }, { 
               where: { 
@@ -207,7 +207,7 @@ class DiseaseController {
               exclude: ["createdAt", "updatedAt"]
             },
             include: {
-              model: fruit,
+              model: drink,
               attributes: {
                 exclude: ["createdAt", "updatedAt"]
               }
@@ -224,9 +224,9 @@ class DiseaseController {
           description: disease.description,
           disease_restrictions: disease.disease_restrictions.map(restriction => ({
             disease_restriction_id: restriction.disease_restriction_id,
-            fruit: {
-              fruit_id: restriction.fruit_id,
-              fruit_name: restriction.fruit.fruit_name
+            drink: {
+              drink_id: restriction.drink_id,
+              drink_name: restriction?.drink?.drink_name
             }
           }))
         }))

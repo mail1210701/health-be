@@ -17,9 +17,9 @@ module.exports = (sequelize, DataTypes) => {
         },
       })
 
-      this.belongsTo(models.fruit, {
+      this.belongsTo(models.drink, {
         foreignKey: {
-          name: "fruit_id"
+          name: "drink_id"
         },
       })
     }
@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true
     },
-    fruit_id: DataTypes.INTEGER,
+    drink_id: DataTypes.INTEGER,
     disease_id: DataTypes.INTEGER
   }, {
     sequelize,

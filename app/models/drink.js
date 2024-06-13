@@ -15,8 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: {
           name: "drink_id"
         },
-        onDelete: "CASCADE",
-        hooks: true
+      })
+
+      this.hasMany(models.disease_restriction, {
+        foreignKey: {
+          name: "drink_id"
+        },
       })
     }
   }

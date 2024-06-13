@@ -1,35 +1,45 @@
 const responseFormatter = require("../helpers/responseFormatter");
-const { drink, drink_detail, fruit, Sequelize } = require("../models");
+const { drink, drink_detail, fruit, disease_restriction, disease, Sequelize } = require("../models");
 
 class FruitController {
   static getListDrink = async (req, res) => {
     try {
-      const { keyword } = req.query
+      // const { keyword } = req.query
       const fruits = await drink.findAll({
-        include: {
-          model: drink_detail,
-          attributes:{
-            exclude: ["createdAt", "updatedAt"]
+        include: [
+          {
+            model: drink_detail,
+            attributes:{
+              exclude: ["createdAt", "updatedAt"]
+            },
+            include: [
+              {
+                model: fruit,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt"]
+                }
+              }
+            ]
           },
-          include: {
-            model: fruit,
+          {
+            model: disease_restriction,
             attributes: {
               exclude: ["createdAt", "updatedAt"]
             }
           }
-        },
-        where: {
-          drink_name: {
-            [Sequelize.Op.iLike]: `%${keyword}%`
-          }
-        }
+        ],
+        // where: {
+        //   drink_name: {
+        //     [Sequelize.Op.iLike]: `%${keyword}%`
+        //   }
+        // }
       });
 
       const response = fruits.map(drink => ({
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
         descriotion: drink.description,
-        drink_materials: drink.drink_details.map(fruitItem => ({
+        ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
           fruit_name: fruitItem?.fruit?.fruit_name
         }))
