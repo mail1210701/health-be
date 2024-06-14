@@ -38,7 +38,7 @@ class FruitController {
       const response = fruits.map(drink => ({
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
-        descriotion: drink.description,
+        description: drink.description,
         ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
           fruit_name: fruitItem?.fruit?.fruit_name
