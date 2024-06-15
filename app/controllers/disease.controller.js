@@ -49,6 +49,55 @@ class DiseaseController {
     }
   };
 
+  static findDisease = async (req, res) => {
+    try {
+      const { id } = req.params
+      const diseaseIsExist = await disease.findByPk(id, {
+        include: [
+          {
+            model: disease_restriction,
+            include: [
+              {
+                model: drink
+              }
+            ]
+          }
+        ]
+      })
+
+      if(!diseaseIsExist) {
+        return res
+          .status(404)
+          .json(
+            responseFormatter.error(null, "Data minuman tidak ditemukan", res.statusCode)
+          );
+      }
+
+      const response = {
+        disease_id: diseaseIsExist.disease_id,
+        disease_name: diseaseIsExist.disease_name,
+        description: diseaseIsExist.description,
+        disease_restrictions: diseaseIsExist.disease_restrictions.map(disease_restriction => ({
+          disease_restriction_id: disease_restriction.disease_restriction_id,
+          drink: {
+            drink_id: disease_restriction.drink_id,
+            drink_name: disease_restriction?.drink?.drink_name
+          }
+        }))
+      }
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.success(response, "data minuman ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+
   static createDisease = async (req, res) => {
     try {
       const {
