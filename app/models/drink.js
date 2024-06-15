@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
           name: "drink_id"
         },
       })
+
+      this.hasMany(models.favorite_drink, {
+        foreignKey: {
+          name: "drink_id"
+        },
+      })
     }
   }
   drink.init({
