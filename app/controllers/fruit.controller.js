@@ -19,6 +19,31 @@ class FruitController {
     }
   };
 
+  static findFruit = async (req, res) => {
+    try {
+      const { id } = req.params
+      const fruitIsExist = await fruit.findByPk(id)
+
+      if(!fruitIsExist) {
+        return res
+          .status(404)
+          .json(
+            responseFormatter.error(null, "Data buah tidak ditemukan", res.statusCode)
+          );
+      }
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.success(fruitIsExist, "data buah ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+
   static createFruit = async (req, res) => {
     try {
       const {
