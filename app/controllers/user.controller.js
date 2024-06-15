@@ -1,6 +1,6 @@
 const responseFormatter = require("../helpers/responseFormatter");
 const getUser = require("../helpers/getUser");
-const { user, role, history_disease, disease, allergy, fruit } =  require("../models");
+const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink } =  require("../models");
 
 class UserController {
   static getProfile = async (req, res) => {
@@ -75,6 +75,45 @@ class UserController {
         .json(responseFormatter.error(null, error.message, res.statusCode));
     }
   }
+
+  static getFavoriteDrink = async (req, res) => {
+    try {
+      const userData = await getUser(req, res)
+
+      const favoriteDrink = await favorite_drink.findAll({
+        include: [
+          {
+            model: drink,
+            attributes: {
+              exclude: ["createdAt", "updatedAt"]
+            }
+          }
+        ],
+        attributes: {
+          exclude: ["drink_id", "user_id"]
+        }
+      },{
+        where: {
+          user_id: userData.user_id
+        }
+      })
+
+      return res
+          .status(200)
+          .json(
+            responseFormatter.success(
+              favoriteDrink,
+              "Data minuman favorit berhasil ditemukan",
+              res.statusCode
+            )
+          );
+
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  } 
 
   static diseaseUser = async (req, res) => {
     try {
