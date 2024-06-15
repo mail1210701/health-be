@@ -84,12 +84,20 @@ class PredictController {
 
       // console.log(JSON.stringify(restrictedDrink, undefined, 2));
 
+      // Split the keyword into individual terms
+      const terms = fruit_name.split(' ').map(term => `%${term}%`);
+
+      // Create the search conditions
+      const conditions = terms.map(term => ({
+        fruit_name: {
+          [sequelize.Op.iLike]: term
+        }
+      }));
+
       // Find the fruit ID based on the fruit name
       let fruits = await fruit.findAll({
         where: {
-          fruit_name: {
-            [sequelize.Op.iLike]: `%${fruit_name}%`
-          }
+          [sequelize.Op.or]: conditions
         }
       });
       fruits = fruits.map(fruit => fruit.fruit_id)
