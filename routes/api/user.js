@@ -4,6 +4,7 @@ const { authJWT } = require("../../app/middlewares");
 const UserController = require("../../app/controllers/user.controller");
 
 router.get("/", authJWT, UserController.getProfile);
+router.get("/favorite", authJWT, UserController.getFavoriteDrink);
 router.post("/disease", authJWT, UserController.diseaseUser);
 router.post("/allergy", authJWT, UserController.allergyUser);
 // router.put("/:id", authJWT, FruitController.updateFruit);
