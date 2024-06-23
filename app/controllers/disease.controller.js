@@ -159,11 +159,14 @@ class DiseaseController {
           disease_id: disease.disease_id,
           disease_name: disease.disease_name,
           description: disease.description,
+          createdAt: disease.createdAt,
+          updatedAt: disease.updatedAt,
           disease_restrictions: disease.disease_restrictions.map(disease_restriction => ({
             disease_restriction_id: disease_restriction.disease_restriction_id,
             drink: {
               drink_id: disease_restriction?.drink_id,
-              drink_name: disease_restriction?.drink?.drink_name
+              drink_name: disease_restriction?.drink?.drink_name,
+              description: disease_restriction?.drink?.description
             }
           }))
         }))
@@ -171,7 +174,7 @@ class DiseaseController {
         return res
           .status(200)
           .json(
-            responseFormatter.success(response, "Data penyakit berhasil ditambahkan", res.statusCode)
+            responseFormatter.success(...response, "Data penyakit berhasil ditambahkan", res.statusCode)
           );
       }
 
@@ -228,24 +231,37 @@ class DiseaseController {
 
       let retriviedDiseaseRestriction
       if(retriviedDisease) {
-        const mapDiseaseRestriction = disease_restrictions.map(({ disease_restriction_id, drink_id }) => ({
-          disease_restriction_id,
-          drink_id,
-          disease_id: id
-        }));
+        const existingRestrictions = await disease_restriction.findAll({
+          where: { disease_id: id }
+        });
 
-        retriviedDiseaseRestriction = await Promise.all(mapDiseaseRestriction.map(async (restriction) => {
-          console.log(restriction.disease_restriction_id);
-          await disease_restriction.update(
-            {
+        const existingRestrictionIds = existingRestrictions.map(restriction => restriction.disease_restriction_id);
+        const incomingRestrictionIds = disease_restrictions.map(({ disease_restriction_id }) => disease_restriction_id).filter(Boolean);
+
+        // Delete restrictions not included in the request
+        const restrictionsToDelete = existingRestrictionIds.filter(id => !incomingRestrictionIds.includes(id));
+        await disease_restriction.destroy({ where: { disease_restriction_id: restrictionsToDelete } });
+
+        retriviedDiseaseRestriction = await Promise.all(disease_restrictions.map(async (restriction) => {
+          if (restriction.disease_restriction_id) {
+            // Update existing restriction
+            await disease_restriction.update(
+              {
+                drink_id: restriction.drink_id,
+                disease_id: id 
+              }, { 
+                where: { 
+                  disease_restriction_id: restriction.disease_restriction_id
+                } 
+              });
+          } else {
+            // Create new restriction
+            await disease_restriction.create({
               drink_id: restriction.drink_id,
-              disease_id: restriction.disease_id 
-            }, { 
-              where: { 
-                disease_restriction_id: restriction.disease_restriction_id
-              } 
+              disease_id: id 
             });
-        }));
+          }
+        }))
       }
 
       if(retriviedDiseaseRestriction) {
@@ -271,6 +287,8 @@ class DiseaseController {
           disease_id: disease.disease_id,
           disease_name: disease.disease_name,
           description: disease.description,
+          createdAt: disease.createdAt,
+          updatedAt: disease.updatedAt,
           disease_restrictions: disease.disease_restrictions.map(restriction => ({
             disease_restriction_id: restriction.disease_restriction_id,
             drink: {
@@ -295,6 +313,57 @@ class DiseaseController {
         .json(responseFormatter.error(null, error.message, res.statusCode));
     }
   };
+
+  static deleteDisease = async (req, res) => {
+    try {
+      const { id } = req.params
+      const diseaseIsExist = await disease.findByPk(id, {
+        include: [
+          {
+            model: disease_restriction,
+            attributes: ["disease_restriction_id"],
+            include: [
+              {
+                model: drink,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                }
+              }
+            ]
+          }
+        ]
+      })
+      if(!diseaseIsExist) {
+        return res
+          .status(404)
+          .json(
+            responseFormatter.error(null, "Data penyakit tidak ditemukan", res.statusCode)
+          );
+      }
+
+      await disease.destroy({
+        where: {
+          disease_id: id
+        }
+      })
+
+      await disease_restriction.destroy({
+        where: {
+          disease_id: id
+        }
+      })
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.success(diseaseIsExist, "Data penyakit berhasil dihapus", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  }
 }
 
 module.exports = DiseaseController;

@@ -7,5 +7,6 @@ router.get("/", authJWT, DiseaseController.getListDisease);
 router.get("/:id", authJWT, DiseaseController.findDisease);
 router.post("/", authJWT, DiseaseController.createDisease);
 router.put("/:id", authJWT, DiseaseController.updateDisease);
+router.delete("/:id", authJWT, DiseaseController.deleteDisease);
 
 module.exports = router;
