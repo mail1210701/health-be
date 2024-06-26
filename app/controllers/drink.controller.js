@@ -254,7 +254,6 @@ class FruitController {
                 } 
               });
           } else {
-            console.log("hello");
             // Create new restriction
             await drink_detail.create({
               fruit_id: ingredient.fruit_id,
