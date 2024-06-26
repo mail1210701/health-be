@@ -243,7 +243,7 @@ class FruitController {
 
         retriviedIngredient = await Promise.all(ingredients.map(async (ingredient) => {
           if (ingredient.drink_detail_id) {
-            // Update existing restriction
+            // Update existing fruit
             await drink_detail.update(
               {
                 fruit_id: ingredient.fruit_id,
@@ -254,7 +254,7 @@ class FruitController {
                 } 
               });
           } else {
-            // Create new restriction
+            // Create new fruit
             await drink_detail.create({
               fruit_id: ingredient.fruit_id,
               drink_id: id 
