@@ -37,6 +37,8 @@ class DiseaseController {
         }))
       }))
 
+      console.log(JSON.stringify(diseases[0].disease_restrictions[0], undefined, 2));
+
       return res
         .status(200)
         .json(

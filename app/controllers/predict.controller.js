@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { user, history_disease, allergy, fruit, drink, drink_detail, disease, disease_restriction } = require("../models");
+const { user, history_disease, allergy, fruit, drink, drink_detail, disease, disease_restriction, recommendation_history } = require("../models");
 const getUser = require("../helpers/getUser");
 
 class PredictController {
@@ -10,27 +10,6 @@ class PredictController {
     } = req.body
     try {
       const userJWT = await getUser(req, res)
-
-      // const validateFruitName = await fruit.findAll({
-      //   where: {
-      //     fruit_name: {
-      //       [sequelize.Op.iLike]: fruit_name
-      //     }
-      //   }
-      // });
-
-      // if(validateFruitName.length > 0) {
-
-      // }else{
-        // return res
-        //   .status(404)
-        //   .json(
-        //     responseFormatter.success(null, "Data rekomendasi minuman tidak ditemukan", res.statusCode)
-        //   );
-      // }
-      // console.log(fruits);
-      // const validateFruitName = fruits.some(fruit => fruit.fruit_name.toLowerCase() === fruit_name.toLowerCase())
-      // console.log(fruits);
 
       // get user information
       const userData = await user.findByPk(userJWT.user_id, {
@@ -68,7 +47,7 @@ class PredictController {
       });
 
       // Extract user disease information
-      const userDiseases = userData.history_diseases.map(diseaseItem => diseaseItem.disease.disease_id)
+      const userDiseases = userData.history_diseases.map(diseaseItem => diseaseItem.disease?.disease_id)
       // Extract user allergy information
       const userAllergies = userData.allergies.map(allergyItem => allergyItem.fruit.fruit_id)
 
@@ -82,7 +61,6 @@ class PredictController {
       })
       restrictedDrink = restrictedDrink.map(restriction => restriction.drink_id);
 
-      // console.log(JSON.stringify(restrictedDrink, undefined, 2));
 
       // Split the keyword into individual terms
       const terms = fruit_name.split(' ').map(term => `%${term}%`);
@@ -102,8 +80,6 @@ class PredictController {
       });
       fruits = fruits.map(fruit => fruit.fruit_id)
 
-      // console.log(JSON.stringify(fruits, undefined, 2));
-
       // Find all drinks that include the specified fruit
       const drinkDetails = await drink_detail.findAll({
         where: {
@@ -114,8 +90,6 @@ class PredictController {
       });
       const drinkIds = drinkDetails.map(drink => drink.drink_id);
 
-      // console.log(JSON.stringify(drinkDetails, undefined, 2));
-
       const drinks = await drink.findAll({
         where: {
           drink_id: {
@@ -124,47 +98,17 @@ class PredictController {
         }
       });
 
-      // console.log(JSON.stringify(drinks, undefined, 2));
-
       // Filter drinks that are safe (not restricted and do not contain allergens)
       const safeDrinks = drinks.filter(drink => {
         const drinkFruits = drinkDetails
           .filter(detail => detail.drink_id === drink.drink_id)
           .map(detail => detail.fruit_id);
 
-        // console.log(JSON.stringify(drinkFruits, undefined, 2));
-
           const containsAllergens = drinkFruits.some(fruitId => userAllergies.includes(fruitId));
           const isRestricted = restrictedDrink.includes(drink.drink_id);
 
         return !containsAllergens && !isRestricted;
       });
-
-      // console.log(JSON.stringify(safeDrinkIds, undefined, 2));
-      
-      // const safeDrinks = await drink.findAll({
-      //   where: {
-      //     drink_id: {
-      //       [sequelize.Op.in]: safeDrinkIds
-      //     }
-      //   }
-      // });
-
-      
-      // let restrictedDrink = await disease_restriction.findAll()
-      // restrictedDrink = restrictedDrink.filter(restriction => userDiseases.includes(restriction.disease_id)).map(restriction => restriction.drink_id)
-      
-      // Filter possible drinks that are not restricted and don't contain allergy
-      // let safeDrinks = await drink.findAll()
-      // const drink_detail_information = await drink_detail.findAll()
-      // safeDrinks = safeDrinks.filter((drink) => {
-      //   const drinkFruit = drink_detail_information.filter(detail => detail.drink_id === drink.drink_id).map(detail => detail.fruit_id);
-
-      //   const containsAllergy = drinkFruit.some(fruitId => userAllergies.includes(fruitId));
-      //   const isRestricted = restrictedDrink.includes(drink.drink_id);
-
-      //   return !containsAllergy && !isRestricted;
-      // })
 
       const drinkSuggestions = await drink.findAll({
         where: {
@@ -184,6 +128,15 @@ class PredictController {
             responseFormatter.error(null, "Data rekomendasi minuman tidak ditemukan", res.statusCode)
           );
       }
+
+      const mapHistory = drinkSuggestions.map(drink => ({
+        fruit_name,
+        user_id: userJWT.user_id,
+        drink_id: drink.drink_id
+      }))
+
+      // create history recommendation each user request predict
+      await recommendation_history.bulkCreate(mapHistory)
 
       return res
         .status(200)

@@ -1,6 +1,7 @@
+const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
 const getUser = require("../helpers/getUser");
-const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink } =  require("../models");
+const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink, recommendation_history } =  require("../models");
 
 class UserController {
   static getProfile = async (req, res) => {
@@ -69,6 +70,135 @@ class UserController {
             res.statusCode
           )
         );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  }
+
+  static updateProfile =  async (req, res) => {
+    try {
+      const { name } = req.body
+      const userData = await getUser(req, res)
+
+      await user.update({
+        name
+      }, {
+        where: {
+          user_id: userData.user_id
+        }
+      })
+
+      const response = await user.findOne({
+        include: [
+          {
+            model: role,
+            attributes:{
+              exclude: ["createdAt", "updatedAt"]
+            },
+          },
+          {
+            model: history_disease,
+            attributes:{
+              exclude: ["createdAt", "updatedAt", "disease_id", "user_id"]
+            },
+            include: [
+              {
+                model: disease,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt"]
+                },
+              }
+            ]
+          },
+          {
+            model: allergy,
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "user_id", "fruit_id"]
+            },
+            include: [
+              {
+                model: fruit,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt", "user_id"]
+                },
+              }
+            ]
+          }
+        ],
+        attributes: {
+          exclude: ["password", "is_active", "role_id"]
+        },
+        where: {
+          user_id: userData.user_id
+        }
+      })
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.success(
+            response,
+            "Data pengguna berhasil diubah",
+            res.statusCode
+          )
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  }
+
+  static getHistoryRecomendation = async (req, res) => {
+    try {
+      const userData = await getUser(req, res)
+
+      const rawHistoryRecomendations = await recommendation_history.findAll({
+        include: [
+          {
+            model: drink,
+            attributes: {
+              exclude: ["createdAt", "updatedAt"]
+            }
+          }
+        ],
+        attributes: {
+          exclude: ["drink_id", "user_id"],
+          include: [
+            [sequelize.fn('DATE', sequelize.col('recommendation_history.createdAt')), 'createdAtDate'] // Group by date part of createdAt
+          ]
+        }
+      },{
+        order: [["recommendation_history.createdAt", "ASC"]],
+        where: {
+          user_id: userData.user_id
+        }
+      })
+
+      const groupedRecommendations = rawHistoryRecomendations.reduce((acc, item) => {
+        const date = item.get('createdAt');
+        if (!acc[date]) {
+          acc[date] = {
+            createdAt: item.createdAt,
+            fruit_name: item.fruit_name,
+            drinks: []
+          };
+        }
+        acc[date].drinks.push(item.drink);
+        return acc;
+      }, {});
+
+      return res
+          .status(200)
+          .json(
+            responseFormatter.success(
+              Object.values(groupedRecommendations),
+              "Data riwayat rekomendasi berhasil ditemukan",
+              res.statusCode
+            )
+          );
     } catch (error) {
       return res
         .status(500)

@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
           name: "drink_id"
         },
       })
+
+      this.hasMany(models.recommendation_history, {
+        foreignKey: {
+          name: "drink_id"
+        },
+      })
     }
   }
   drink.init({

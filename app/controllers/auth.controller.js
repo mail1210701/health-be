@@ -47,7 +47,7 @@ class AuthController {
         from: "BAGUS.10119064 <bagus.10119064@mahasiswa.unikom.ac.id>",
         to: clearEmail,
         subject: "Account Activation",
-        html: `<a href='http://localhost:5173/activation?token=${btoa(
+        html: `<a href='https://sehat-scan.netlify.app/auth/verify-email?token=${btoa(
           JSON.stringify(userData)
         )}'>Click this link to activate your account</a>`,
       };
