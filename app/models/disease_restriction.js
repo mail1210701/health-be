@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
           name: "drink_id"
         },
       })
+
+      this.belongsTo(models.drink_detail, {
+        foreignKey: {
+          name: "drink_id"
+        },
+      })
     }
   }
   disease_restriction.init({

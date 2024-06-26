@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { disease, disease_restriction, drink} = require("../models");
+const { disease, disease_restriction, drink, drink_detail, fruit} = require("../models");
 
 class DiseaseController {
   static getListDisease = async (req, res) => {
@@ -18,7 +18,23 @@ class DiseaseController {
                 attributes: {
                   exclude: ["createdAt", "updatedAt"]
                 },
-              }
+                include: [
+                  {
+                    model: drink_detail,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    },
+                    include: [
+                      {
+                        model: fruit,
+                        attributes: {
+                          exclude: ["createdAt", "updatedAt"]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
             ]
           }
         ]
@@ -32,12 +48,14 @@ class DiseaseController {
           disease_restriction_id: disease_restriction.disease_restriction_id,
           drink: {
             drink_id: disease_restriction.drink_id,
-            drink_name: disease_restriction?.drink?.drink_name
-          }
+            drink_name: disease_restriction?.drink?.drink_name,
+            ingredients: disease_restriction?.drink?.drink_details.map(drink_detail => ({
+              fruit_id: drink_detail?.fruit?.fruit_id,
+              fruit_name: drink_detail?.fruit?.fruit_name
+            }))
+          }, 
         }))
       }))
-
-      console.log(JSON.stringify(diseases[0].disease_restrictions[0], undefined, 2));
 
       return res
         .status(200)
