@@ -8,7 +8,7 @@ router.get("/count", authJWT, DrinkController.countDrink);
 router.get("/:id", authJWT, DrinkController.findDrink);
 router.post("/", authJWT, DrinkController.createDrink);
 router.post("/action", authJWT, DrinkController.favoriteDrink);
-// router.put("/:id", DrinkController.updateFruit);
+router.put("/:id", DrinkController.updateDrink);
 router.delete("/:id", authJWT, DrinkController.deleteDrink);
 
 module.exports = router;
