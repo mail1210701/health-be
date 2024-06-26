@@ -1,7 +1,7 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
 const getUser = require("../helpers/getUser");
-const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink, recommendation_history } =  require("../models");
+const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink, drink_detail, recommendation_history } =  require("../models");
 
 class UserController {
   static getProfile = async (req, res) => {
@@ -216,7 +216,23 @@ class UserController {
             model: drink,
             attributes: {
               exclude: ["createdAt", "updatedAt"]
-            }
+            },
+            include: [
+              {
+                model: drink_detail,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                },
+                include: [
+                  {
+                    model: fruit,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ],
         attributes: {
@@ -228,11 +244,27 @@ class UserController {
         }
       })
 
+      const response = favoriteDrink.map(fav => ({
+        favorite_id: fav.favorite_id,
+        createdAt: fav.createdAt,
+        updatedAt: fav.updatedAt,
+        drink: {
+          drink_id: fav.drink.drink_id,
+          drink_name: fav.drink.drink_name,
+          description: fav.drink.description,
+          ingredients: fav.drink.drink_details.map(detail => ({
+            fruit_id: detail.fruit.fruit_id,
+            fruit_name: detail.fruit.fruit_name
+          }))
+        }
+      }));
+      
+
       return res
           .status(200)
           .json(
             responseFormatter.success(
-              favoriteDrink,
+              response,
               "Data minuman favorit berhasil ditemukan",
               res.statusCode
             )
