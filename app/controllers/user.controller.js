@@ -4,6 +4,22 @@ const getUser = require("../helpers/getUser");
 const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink, drink_detail, recommendation_history } =  require("../models");
 
 class UserController {
+  static countUser = async (req, res) => {
+    try {
+      const totalUser = await user.count();
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.error(totalUser, "Informasi jumlah data pengguna ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+
   static getProfile = async (req, res) => {
     try {
       const userJWT = await getUser(req, res)

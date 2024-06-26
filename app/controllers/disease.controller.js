@@ -3,6 +3,22 @@ const responseFormatter = require("../helpers/responseFormatter");
 const { disease, disease_restriction, drink, drink_detail, fruit} = require("../models");
 
 class DiseaseController {
+  static countDisease = async (req, res) => {
+    try {
+      const totalDisease = await disease.count();
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.error(totalDisease, "Informasi jumlah data penyakit ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+
   static getListDisease = async (req, res) => {
     try {
       const diseases = await disease.findAll({

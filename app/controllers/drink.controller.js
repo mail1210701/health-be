@@ -3,6 +3,22 @@ const responseFormatter = require("../helpers/responseFormatter");
 const { drink, drink_detail, fruit, disease_restriction, favorite_drink } = require("../models");
 
 class FruitController {
+  static countDrink = async (req, res) => {
+    try {
+      const totalDrink = await drink.count();
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.error(totalDrink, "Informasi jumlah data minuman ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+
   static getListDrink = async (req, res) => {
     try {
       // const { keyword } = req.query

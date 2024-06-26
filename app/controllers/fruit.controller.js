@@ -3,6 +3,22 @@ const responseFormatter = require("../helpers/responseFormatter");
 const { fruit } = require("../models");
 
 class FruitController {
+  static countFruit = async (req, res) => {
+    try {
+      const totalFruit = await fruit.count();
+
+      return res
+        .status(200)
+        .json(
+          responseFormatter.error(totalFruit, "Informasi jumlah data buah ditemukan", res.statusCode)
+        );
+    } catch (error) {
+      return res
+        .status(500)
+        .json(responseFormatter.error(null, error.message, res.statusCode));
+    }
+  };
+  
   static getListfruit = async (req, res) => {
     try {
       const fruits = await fruit.findAll();
