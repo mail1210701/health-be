@@ -14,7 +14,7 @@ async function sendMail({ from, to, subject, html}) {
       service: 'gmail',
       auth: {
         type: 'OAuth2',
-        user: 'bagus.10119064@mahasiswa.unikom.ac.id',
+        user: 'lalanajunior84@gmail.com',
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
