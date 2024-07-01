@@ -44,12 +44,12 @@ class AuthController {
       };
 
       const mailOptions = {
-        from: "BAGUS.10119064 <bagus.10119064@mahasiswa.unikom.ac.id>",
+        from: "Akbar Rizki <lalanajunior84@gmail.com>",
         to: clearEmail,
-        subject: "Account Activation",
+        subject: "Aktivasi Akun",
         html: `<a href='https://sehat-scan.netlify.app/auth/verify-email?token=${btoa(
           JSON.stringify(userData)
-        )}'>Click this link to activate your account</a>`,
+        )}'>Tekan tautan berikut untuk melakukan aktivasi akun anda</a>`,
       };
 
       sendMail(mailOptions);
@@ -168,10 +168,10 @@ class AuthController {
       } 
 
       const mailOptions = {
-        from: "BAGUS.10119064 <bagus.10119064@mahasiswa.unikom.ac.id>",
+        from: "Akbar Rizki <lalanajunior84@gmail.com>",
         to: email,
-        subject: "Reset Password",
-        html: `<p>Click this link to reset your password <a href="http://localhost:5173/reset-password?token=${btoa(JSON.stringify(userIsExist))}">Reset Password</a></p>`
+        subject: "Perubahan Kata Sandi",
+        html: `<p>Tekan tautan berikut untuk melakukan perubahan kata sandi <a href="http://localhost:5173/reset-password?token=${btoa(JSON.stringify(userIsExist))}">Ubah Kata Sandi</a></p>`
       };
 
       sendMail(mailOptions);
