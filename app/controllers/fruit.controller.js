@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { fruit } = require("../models");
+const { fruit, drink_detail } = require("../models");
 
 class FruitController {
   static countFruit = async (req, res) => {
@@ -160,6 +160,20 @@ class FruitController {
           .status(404)
           .json(
             responseFormatter.error(null, "Data buah tidak ditemukan", res.statusCode)
+          );
+      }
+
+      const fruitIsUsed = await drink_detail.findOne({
+        where: {
+          fruit_id: id
+        }
+      });
+  
+      if (fruitIsUsed) {
+        return res
+          .status(400)
+          .json(
+            responseFormatter.error(null, "Data buah tidak dapat dihapus karena sudah digunakan didalam data minuman", res.statusCode)
           );
       }
 

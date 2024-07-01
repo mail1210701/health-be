@@ -51,7 +51,7 @@ class PredictController {
       // Extract user allergy information
       const userAllergies = userData.allergies.map(allergyItem => allergyItem.fruit.fruit_id)
 
-      // Identify restricted drinks based on diseases
+      // Identify restricted drinks based on diseases and fruit
       let restrictedDrink = await disease_restriction.findAll({
         where: { 
           disease_id: { 
@@ -91,6 +91,14 @@ class PredictController {
       const drinkIds = drinkDetails.map(drink => drink.drink_id);
 
       const drinks = await drink.findAll({
+        include: [
+          {
+            model: drink_detail,
+            attributes:{
+              exclude: ["createdAt", "updatedAt"]
+            },
+          }
+        ],
         where: {
           drink_id: {
             [sequelize.Op.in]: drinkIds
@@ -98,18 +106,12 @@ class PredictController {
         }
       });
 
-      // Filter drinks that are safe (not restricted and do not contain allergens)
       const safeDrinks = drinks.filter(drink => {
-        const drinkFruits = drinkDetails
-          .filter(detail => detail.drink_id === drink.drink_id)
-          .map(detail => detail.fruit_id);
-
-          const containsAllergens = drinkFruits.some(fruitId => userAllergies.includes(fruitId));
-          const isRestricted = restrictedDrink.includes(drink.drink_id);
-
+        const containsAllergens = drink.drink_details.some(({ fruit_id }) => userAllergies.includes(fruit_id));
+        const isRestricted = restrictedDrink.includes(drink.drink_id);
         return !containsAllergens && !isRestricted;
       });
-
+      
       const drinkSuggestions = await drink.findAll({
         where: {
           drink_id: {

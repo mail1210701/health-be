@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { disease, disease_restriction, drink, drink_detail, fruit} = require("../models");
+const { disease, disease_restriction, history_disease, drink, drink_detail, fruit} = require("../models");
 
 class DiseaseController {
   static countDisease = async (req, res) => {
@@ -369,11 +369,26 @@ class DiseaseController {
           }
         ]
       })
+
       if(!diseaseIsExist) {
         return res
           .status(404)
           .json(
             responseFormatter.error(null, "Data penyakit tidak ditemukan", res.statusCode)
+          );
+      }
+
+      const diseaseIsUsed = await history_disease.findOne({
+        where: {
+          disease_id: id
+        }
+      })
+
+      if (diseaseIsUsed) {
+        return res
+          .status(400)
+          .json(
+            responseFormatter.error(null, "Data penyakit tidak dapat dihapus karena sudah terdaftar pada beberapa pengguna", res.statusCode)
           );
       }
 

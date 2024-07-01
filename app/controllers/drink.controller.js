@@ -321,6 +321,20 @@ class FruitController {
           );
       }
 
+      const drinkIsUsed = await disease_restriction.findOne({
+        where: {
+          drink_id: id
+        }
+      });
+  
+      if (drinkIsUsed) {
+        return res
+          .status(400)
+          .json(
+            responseFormatter.error(null, "Data minuman tidak dapat dihapus karena sudah digunakan didalam beberapa data penyakit sebagai pantangan", res.statusCode)
+          );
+      }
+
       const retrivied = await drink.findAll({
         include: {
           model: drink_detail,
