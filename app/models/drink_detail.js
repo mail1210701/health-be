@@ -31,11 +31,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true,
     },
+    drink_id: DataTypes.INTEGER,
     fruit_id: DataTypes.INTEGER,
-    drink_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'drink_detail',
+    tableName: 'drink_details'
   });
 
   drink_detail.removeAttribute("id");

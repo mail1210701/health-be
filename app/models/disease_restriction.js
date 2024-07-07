@@ -17,17 +17,23 @@ module.exports = (sequelize, DataTypes) => {
         },
       })
 
-      this.belongsTo(models.drink, {
+      this.belongsTo(models.nutrition, {
         foreignKey: {
-          name: "drink_id"
+          name: "nutrition_id"
         },
       })
 
-      this.belongsTo(models.drink_detail, {
-        foreignKey: {
-          name: "drink_id"
-        },
-      })
+      // this.belongsTo(models.drink, {
+      //   foreignKey: {
+      //     name: "drink_id"
+      //   },
+      // })
+
+      // this.belongsTo(models.drink_detail, {
+      //   foreignKey: {
+      //     name: "drink_id"
+      //   },
+      // })
     }
   }
   disease_restriction.init({
@@ -37,11 +43,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true
     },
-    drink_id: DataTypes.INTEGER,
-    disease_id: DataTypes.INTEGER
+    disease_id: DataTypes.INTEGER,
+    nutrition_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'disease_restriction',
+    tableName: 'disease_restrictions'
   });
 
   disease_restriction.removeAttribute("id");

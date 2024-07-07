@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { disease, disease_restriction, history_disease, drink, drink_detail, fruit} = require("../models");
+const { disease, disease_restriction, history_disease, drink, nutrition, drink_detail, fruit} = require("../models");
 
 class DiseaseController {
   static countDisease = async (req, res) => {
@@ -25,58 +25,23 @@ class DiseaseController {
         include: [
           {
             model: disease_restriction,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"]
-            },
+            attributes: ["disease_restriction_id"],
             include: [
               {
-                model: drink,
+                model: nutrition,
                 attributes: {
                   exclude: ["createdAt", "updatedAt"]
                 },
-                include: [
-                  {
-                    model: drink_detail,
-                    attributes: {
-                      exclude: ["createdAt", "updatedAt"]
-                    },
-                    include: [
-                      {
-                        model: fruit,
-                        attributes: {
-                          exclude: ["createdAt", "updatedAt"]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
+              }
             ]
           }
         ]
       });
 
-      const response = diseases.map(disease => ({
-        disease_id: disease.disease_id,
-        disease_name: disease.disease_name,
-        description: disease.description,
-        disease_restrictions: disease.disease_restrictions.map(disease_restriction => ({
-          disease_restriction_id: disease_restriction.disease_restriction_id,
-          drink: {
-            drink_id: disease_restriction.drink_id,
-            drink_name: disease_restriction?.drink?.drink_name,
-            ingredients: disease_restriction?.drink?.drink_details.map(drink_detail => ({
-              fruit_id: drink_detail?.fruit?.fruit_id,
-              fruit_name: drink_detail?.fruit?.fruit_name
-            }))
-          }, 
-        }))
-      }))
-
       return res
         .status(200)
         .json(
-          responseFormatter.success(response, "Data penyakit ditemukan", res.statusCode)
+          responseFormatter.success(diseases, "Data penyakit ditemukan", res.statusCode)
         );
     } catch (error) {
       return res
@@ -92,9 +57,13 @@ class DiseaseController {
         include: [
           {
             model: disease_restriction,
+            attributes: ["disease_restriction_id"],
             include: [
               {
-                model: drink
+                model: nutrition,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                },
               }
             ]
           }
@@ -105,27 +74,14 @@ class DiseaseController {
         return res
           .status(404)
           .json(
-            responseFormatter.error(null, "Data minuman tidak ditemukan", res.statusCode)
+            responseFormatter.error(null, "Data penyakit tidak ditemukan", res.statusCode)
           );
-      }
-
-      const response = {
-        disease_id: diseaseIsExist.disease_id,
-        disease_name: diseaseIsExist.disease_name,
-        description: diseaseIsExist.description,
-        disease_restrictions: diseaseIsExist.disease_restrictions.map(disease_restriction => ({
-          disease_restriction_id: disease_restriction.disease_restriction_id,
-          drink: {
-            drink_id: disease_restriction.drink_id,
-            drink_name: disease_restriction?.drink?.drink_name
-          }
-        }))
       }
 
       return res
         .status(200)
         .json(
-          responseFormatter.success(response, "data minuman ditemukan", res.statusCode)
+          responseFormatter.success(diseaseIsExist, "data penyakit ditemukan", res.statusCode)
         );
     } catch (error) {
       return res
@@ -164,8 +120,8 @@ class DiseaseController {
 
       let retriviedDiseaseRestriction
       if(retriviedDisease) {
-        const mapDiseaseRestriction = disease_restrictions.map(({ drink_id }) => ({
-          drink_id,
+        const mapDiseaseRestriction = disease_restrictions.map(({ nutrition_id }) => ({
+          nutrition_id,
           disease_id: retriviedDisease.disease_id
         }));
 
@@ -180,7 +136,7 @@ class DiseaseController {
               exclude: ["createdAt", "updatedAt"]
             },
             include: {
-              model: drink,
+              model: nutrition,
               attributes: {
                 exclude: ["createdAt", "updatedAt"]
               }
@@ -199,10 +155,9 @@ class DiseaseController {
           updatedAt: disease.updatedAt,
           disease_restrictions: disease.disease_restrictions.map(disease_restriction => ({
             disease_restriction_id: disease_restriction.disease_restriction_id,
-            drink: {
-              drink_id: disease_restriction?.drink_id,
-              drink_name: disease_restriction?.drink?.drink_name,
-              description: disease_restriction?.drink?.description
+            nutritions: {
+              nutrition_id: disease_restriction?.nutrition_id,
+              nutrition_name: disease_restriction?.drink?.nutrition_name
             }
           }))
         }))
@@ -283,7 +238,7 @@ class DiseaseController {
             // Update existing restriction
             await disease_restriction.update(
               {
-                drink_id: restriction.drink_id,
+                nutrition_id: restriction.nutrition_id,
                 disease_id: id 
               }, { 
                 where: { 
@@ -293,7 +248,7 @@ class DiseaseController {
           } else {
             // Create new restriction
             await disease_restriction.create({
-              drink_id: restriction.drink_id,
+              nutrition_id: restriction.nutrition_id,
               disease_id: id 
             });
           }
@@ -301,43 +256,25 @@ class DiseaseController {
       }
 
       if(retriviedDiseaseRestriction) {
-        const retrivied = await disease.findAll({
+        const retrivied = await disease.findByPk(id, {
           include: {
             model: disease_restriction,
-            attributes:{
-              exclude: ["createdAt", "updatedAt"]
-            },
-            include: {
-              model: drink,
-              attributes: {
-                exclude: ["createdAt", "updatedAt"]
+            attributes: ["disease_restriction_id"],
+            include: [
+              {
+                model: nutrition,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                }
               }
-            }
+            ]
           },
-          where: {
-            disease_id: id
-          }
         });
-  
-        const response = retrivied.map(disease => ({
-          disease_id: disease.disease_id,
-          disease_name: disease.disease_name,
-          description: disease.description,
-          createdAt: disease.createdAt,
-          updatedAt: disease.updatedAt,
-          disease_restrictions: disease.disease_restrictions.map(restriction => ({
-            disease_restriction_id: restriction.disease_restriction_id,
-            drink: {
-              drink_id: restriction.drink_id,
-              drink_name: restriction?.drink?.drink_name
-            }
-          }))
-        }))
 
         return res
           .status(200)
           .json(
-            responseFormatter.success(response, "Data penyakit berhasil diperbaharui", res.statusCode)
+            responseFormatter.success(retrivied, "Data penyakit berhasil diperbaharui", res.statusCode)
           );
       }
 
@@ -360,7 +297,7 @@ class DiseaseController {
             attributes: ["disease_restriction_id"],
             include: [
               {
-                model: drink,
+                model: nutrition,
                 attributes: {
                   exclude: ["createdAt", "updatedAt"]
                 }

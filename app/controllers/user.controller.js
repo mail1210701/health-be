@@ -1,7 +1,7 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
 const getUser = require("../helpers/getUser");
-const { user, role, history_disease, disease, allergy, fruit, favorite_drink, drink, drink_detail, recommendation_history } =  require("../models");
+const { user, role, history_disease, disease, allergy, fruit, fruit_nutrition, nutrition, favorite_drink, drink, drink_detail, recommendation_history } =  require("../models");
 
 class UserController {
   static countUser = async (req, res) => {
@@ -175,9 +175,34 @@ class UserController {
         include: [
           {
             model: drink,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"]
-            }
+            attributes: ["drink_id", "drink_name"],
+            include: [
+              {
+                model: drink_detail,
+                attributes: ["drink_detail_id"],
+                include: [
+                  {
+                    model: fruit,
+                    attributes: ["fruit_id", "fruit_name"],
+                    include: [
+                      {
+                        model: fruit_nutrition,
+                        attributes: ["fruit_nutrition_id"],
+                        include: [
+                          {
+                            model: nutrition,
+                            attributes: [
+                              [sequelize.col('nutrition_id'), 'id'],
+                              [sequelize.col('nutrition_name'), 'name']
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ],
         attributes: {
@@ -202,7 +227,23 @@ class UserController {
             drinks: []
           };
         }
-        acc[date].drinks.push(item.drink);
+        
+        const drinkData = {
+          drink: {
+            drink_id: item.drink.drink_id,
+            drink_name: item.drink.drink_name,
+            ingredients: [{
+              fruit_id: item.drink.drink_details[0].fruit.fruit_id,
+              fruit_name: item.drink.drink_details[0].fruit.fruit_name,
+              nutritions: item.drink.drink_details[0].fruit.fruit_nutritions.map(fn => ({
+                nutrition_id: fn.nutrition.get("id"),
+                nutrition_name: fn.nutrition.get("name")
+              }))
+            }]
+          }
+        };
+      
+        acc[date].drinks.push(drinkData);
         return acc;
       }, {});
 
@@ -230,21 +271,30 @@ class UserController {
         include: [
           {
             model: drink,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"]
-            },
+            attributes: ["drink_id", "drink_name"],
             include: [
               {
                 model: drink_detail,
-                attributes: {
-                  exclude: ["createdAt", "updatedAt"]
-                },
+                attributes: ["drink_detail_id"],
                 include: [
                   {
                     model: fruit,
-                    attributes: {
-                      exclude: ["createdAt", "updatedAt"]
-                    }
+                    attributes: ["fruit_id", "fruit_name"],
+                    include: [
+                      {
+                        model: fruit_nutrition,
+                        attributes: ["fruit_nutrition_id"],
+                        include: [
+                          {
+                            model: nutrition,
+                            attributes: [
+                              [sequelize.col('nutrition_id'), 'id'],
+                              [sequelize.col('nutrition_name'), 'name']
+                            ]
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               }
@@ -270,8 +320,12 @@ class UserController {
           description: fav.drink.description,
           ingredients: fav.drink.drink_details.map(detail => ({
             fruit_id: detail.fruit.fruit_id,
-            fruit_name: detail.fruit.fruit_name
-          }))
+            fruit_name: detail.fruit.fruit_name,
+            nutritions: detail.fruit.fruit_nutritions.map(fn => ({
+              nutrition_id: fn.nutrition.get("id"),
+              nutrition_name: fn.nutrition.get("name"),
+            }))
+          })),
         }
       }));
       

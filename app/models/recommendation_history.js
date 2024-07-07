@@ -25,6 +25,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'recommendation_history',
+    tableName: 'recommendation_histories'
   });
   
   recommendation_history.removeAttribute("id");

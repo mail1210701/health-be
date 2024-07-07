@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      this.hasMany(models.fruit_nutrition, {
+        foreignKey: {
+          name: "fruit_id"
+        },
+      })
+
       this.hasMany(models.drink_detail, {
         foreignKey: {
           name: "fruit_id"
@@ -35,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'fruit',
+    tableName: 'fruits'
   });
 
   fruit.removeAttribute("id");

@@ -17,12 +17,6 @@ module.exports = (sequelize, DataTypes) => {
         },
       })
 
-      this.hasMany(models.disease_restriction, {
-        foreignKey: {
-          name: "drink_id"
-        },
-      })
-
       this.hasMany(models.favorite_drink, {
         foreignKey: {
           name: "drink_id"
@@ -48,6 +42,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'drink',
+    tableName: 'drinks'
   });
 
   drink.removeAttribute("id");

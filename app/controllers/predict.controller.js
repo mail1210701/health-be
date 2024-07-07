@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { user, history_disease, allergy, fruit, drink, drink_detail, disease, disease_restriction, recommendation_history } = require("../models");
+const { user, history_disease, allergy, fruit, fruit_nutrition, drink, drink_detail, disease, disease_restriction, recommendation_history } = require("../models");
 const getUser = require("../helpers/getUser");
 
 class PredictController {
@@ -51,7 +51,7 @@ class PredictController {
       // Extract user allergy information
       const userAllergies = userData.allergies.map(allergyItem => allergyItem.fruit.fruit_id)
 
-      // Identify restricted drinks based on diseases and fruit
+      // Identify restricted drinks based on diseases
       let restrictedDrink = await disease_restriction.findAll({
         where: { 
           disease_id: { 
@@ -59,7 +59,7 @@ class PredictController {
           } 
         }
       })
-      restrictedDrink = restrictedDrink.map(restriction => restriction.drink_id);
+      restrictedDrink = restrictedDrink.map(restriction => restriction.nutrition_id);
 
 
       // Split the keyword into individual terms
@@ -97,6 +97,22 @@ class PredictController {
             attributes:{
               exclude: ["createdAt", "updatedAt"]
             },
+            include: [
+              {
+                model: fruit,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt"]
+                },
+                include: [
+                  {
+                    model: fruit_nutrition,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    },
+                  }
+                ]
+              },
+            ]
           }
         ],
         where: {
@@ -108,7 +124,7 @@ class PredictController {
 
       const safeDrinks = drinks.filter(drink => {
         const containsAllergens = drink.drink_details.some(({ fruit_id }) => userAllergies.includes(fruit_id));
-        const isRestricted = restrictedDrink.includes(drink.drink_id);
+        const isRestricted = drink.drink_details.some(drink => drink.fruit.fruit_nutritions.some(fn => restrictedDrink.includes(fn.nutrition_id)))
         return !containsAllergens && !isRestricted;
       });
       

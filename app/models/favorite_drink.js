@@ -30,6 +30,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'favorite_drink',
+    tableName: 'favorite_drinks'
   });
 
   favorite_drink.removeAttribute("id");

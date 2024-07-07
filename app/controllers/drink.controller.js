@@ -1,7 +1,7 @@
 const sequelize = require("sequelize");
 const getUser = require("../helpers/getUser");
 const responseFormatter = require("../helpers/responseFormatter");
-const { drink, drink_detail, fruit, disease_restriction, favorite_drink } = require("../models");
+const { drink, drink_detail, fruit, fruit_nutrition, nutrition, disease_restriction, favorite_drink } = require("../models");
 
 class FruitController {
   static countDrink = async (req, res) => {
@@ -35,16 +35,26 @@ class FruitController {
                 model: fruit,
                 attributes:{
                   exclude: ["createdAt", "updatedAt"]
-                }
-              }
+                },
+                include: [
+                  {
+                    model: fruit_nutrition,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    },
+                    include: [
+                      {
+                        model: nutrition,
+                        attributes: {
+                          exclude: ["createdAt", "updatedAt"]
+                        },
+                      }
+                    ]
+                  }
+                ]
+              },
             ]
           },
-          {
-            model: disease_restriction,
-            attributes: {
-              exclude: ["createdAt", "updatedAt"]
-            }
-          }
         ],
         // where: {
         //   drink_name: {
@@ -59,7 +69,11 @@ class FruitController {
         description: drink.description,
         ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
-          fruit_name: fruitItem?.fruit?.fruit_name
+          fruit_name: fruitItem?.fruit?.fruit_name,
+          nutritions: fruitItem.fruit.fruit_nutritions.map(fn => ({
+            nutrition_id: fn.nutrition.nutrition_id,
+            nutrition_name: fn.nutrition.nutrition_name
+          }))
         }))
       }))
 
@@ -84,8 +98,27 @@ class FruitController {
             model: drink_detail,
             include: [
               {
-                model: fruit
-              }
+                model: fruit,
+                attributes: {
+                  exclude: ["createdAt", "updatedAt"]
+                },
+                include: [
+                  {
+                    model: fruit_nutrition,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    },
+                    include: [
+                      {
+                        model: nutrition,
+                        attributes: {
+                          exclude: ["createdAt", "updatedAt"]
+                        },
+                      }
+                    ]
+                  }
+                ]
+              },
             ]
           }
         ]
@@ -105,7 +138,11 @@ class FruitController {
         description: drinkIsExist.description,
         ingredients: drinkIsExist.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
-          fruit_name: fruitItem?.fruit?.fruit_name
+          fruit_name: fruitItem?.fruit?.fruit_name,
+          nutritions: fruitItem.fruit.fruit_nutritions.map(fn => ({
+            nutrition_id: fn.nutrition.nutrition_id,
+            nutrition_name: fn.nutrition.nutrition_name
+          }))
         }))
       }
 

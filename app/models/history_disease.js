@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'history_disease',
+    tableName: 'history_diseases'
   });
 
   history_disease.removeAttribute("id");
