@@ -271,7 +271,7 @@ class UserController {
         include: [
           {
             model: drink,
-            attributes: ["drink_id", "drink_name"],
+            attributes: ["drink_id", "drink_name", "description"],
             include: [
               {
                 model: drink_detail,

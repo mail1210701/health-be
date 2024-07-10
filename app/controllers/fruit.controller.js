@@ -22,6 +22,14 @@ class FruitController {
   static getListfruit = async (req, res) => {
     try {
       const { keyword } = req.query
+      const whereClause = keyword
+        ? sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('fruit_name')),
+            keyword.toLowerCase()
+          )
+        : {};
+
+      
       const fruits = await fruit.findAll({
         include: [
           {
@@ -39,10 +47,7 @@ class FruitController {
             ]
           }
         ],
-        where: sequelize.where(
-          sequelize.fn('LOWER', sequelize.col('fruit_name')),
-          keyword.toLowerCase()
-        )
+        where: whereClause
       });
 
       const response = fruits.map(fruit => {
