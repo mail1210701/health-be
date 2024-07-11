@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { user, history_disease, allergy, fruit, fruit_nutrition, drink, drink_detail, disease, disease_restriction, recommendation_history } = require("../models");
+const { user, history_disease, allergy, fruit, fruit_nutrition, nutrition, drink, drink_detail, disease, disease_restriction, recommendation_history } = require("../models");
 const getUser = require("../helpers/getUser");
 
 class PredictController {
@@ -129,6 +129,38 @@ class PredictController {
       });
       
       const drinkSuggestions = await drink.findAll({
+        include: [
+          {
+            model: drink_detail,
+            attributes:{
+              exclude: ["createdAt", "updatedAt"]
+            },
+            include: [
+              {
+                model: fruit,
+                attributes:{
+                  exclude: ["createdAt", "updatedAt"]
+                },
+                include: [
+                  {
+                    model: fruit_nutrition,
+                    attributes: {
+                      exclude: ["createdAt", "updatedAt"]
+                    },
+                    include: [
+                      {
+                        model: nutrition,
+                        attributes: {
+                          exclude: ["createdAt", "updatedAt"]
+                        },
+                      }
+                    ]
+                  }
+                ]
+              },
+            ]
+          },
+        ],
         where: {
           drink_id: {
             [sequelize.Op.in]: safeDrinks.map(drink => drink.drink_id)
@@ -156,10 +188,24 @@ class PredictController {
       // create history recommendation each user request predict
       await recommendation_history.bulkCreate(mapHistory)
 
+      const response = drinkSuggestions.map(drink => ({
+        drink_id: drink.drink_id,
+        drink_name: drink.drink_name,
+        description: drink.description,
+        ingredients: drink.drink_details.map(detail => ({
+          fruit_id: detail.fruit.fruit_id,
+          fruit_name: detail.fruit.fruit_name,
+          nutritions: detail.fruit.fruit_nutritions.map(fn => ({
+            nutrition_id: fn.nutrition.nutrition_id,
+            nutrition_name: fn.nutrition.nutrition_name,
+          }))
+        })),
+      }));
+
       return res
         .status(200)
         .json(
-          responseFormatter.success(drinkSuggestions, "Data rekomendasi minuman berhasil ditemukan", res.statusCode)
+          responseFormatter.success(response, "Data rekomendasi minuman berhasil ditemukan", res.statusCode)
         );
     } catch (error) {
       return res
