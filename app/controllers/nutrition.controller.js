@@ -1,6 +1,6 @@
 const sequelize = require("sequelize");
 const responseFormatter = require("../helpers/responseFormatter");
-const { nutrition, drink_detail } = require("../models");
+const { nutrition, disease_restriction } = require("../models");
 
 class NutritionController {  
   static getListNutrition = async (req, res) => {
@@ -147,7 +147,7 @@ class NutritionController {
           );
       }
 
-      const nutritionIsUsed = await drink_detail.findOne({
+      const nutritionIsUsed = await disease_restriction.findOne({
         where: {
           nutrition_id: id
         }
@@ -157,7 +157,7 @@ class NutritionController {
         return res
           .status(400)
           .json(
-            responseFormatter.error(null, "Data nutrisi tidak dapat dihapus karena sudah digunakan didalam data minuman", res.statusCode)
+            responseFormatter.error(null, "Data nutrisi tidak dapat dihapus karena sudah digunakan didalam pantangan penyakit", res.statusCode)
           );
       }
 
