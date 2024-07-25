@@ -175,7 +175,7 @@ class UserController {
         include: [
           {
             model: drink,
-            attributes: ["drink_id", "drink_name", "description"],
+            attributes: ["drink_id", "drink_name", "description", "image"],
             include: [
               {
                 model: drink_detail,
@@ -233,6 +233,7 @@ class UserController {
             drink_id: item.drink.drink_id,
             drink_name: item.drink.drink_name,
             description: item.drink.description,
+            image: item.drink.image || null,
             ingredients: [{
               fruit_id: item.drink.drink_details[0].fruit.fruit_id,
               fruit_name: item.drink.drink_details[0].fruit.fruit_name,
@@ -272,7 +273,7 @@ class UserController {
         include: [
           {
             model: drink,
-            attributes: ["drink_id", "drink_name", "description"],
+            attributes: ["drink_id", "drink_name", "description", "image"],
             include: [
               {
                 model: drink_detail,
@@ -319,6 +320,7 @@ class UserController {
           drink_id: fav.drink.drink_id,
           drink_name: fav.drink.drink_name,
           description: fav.drink.description,
+          image: fav.drink.image || null,
           ingredients: fav.drink.drink_details.map(detail => ({
             fruit_id: detail.fruit.fruit_id,
             fruit_name: detail.fruit.fruit_name,

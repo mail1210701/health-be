@@ -188,10 +188,13 @@ class PredictController {
       // create history recommendation each user request predict
       await recommendation_history.bulkCreate(mapHistory)
 
+      console.log(JSON.stringify(drinkSuggestions, null, 2));
+
       const response = drinkSuggestions.map(drink => ({
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
         description: drink.description,
+        image: drink.image,
         ingredients: drink.drink_details.map(detail => ({
           fruit_id: detail.fruit.fruit_id,
           fruit_name: detail.fruit.fruit_name,

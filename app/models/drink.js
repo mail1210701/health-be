@@ -38,7 +38,8 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true
     },
     drink_name: DataTypes.STRING,
-    description: DataTypes.STRING
+    description: DataTypes.STRING,
+    image: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'drink',

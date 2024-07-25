@@ -67,6 +67,7 @@ class FruitController {
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
         description: drink.description,
+        image: drink.image,
         ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
           fruit_name: fruitItem?.fruit?.fruit_name,
@@ -136,6 +137,7 @@ class FruitController {
         drink_id: drinkIsExist.drink_id,
         drink_name: drinkIsExist.drink_name,
         description: drinkIsExist.description,
+        image: drinkIsExist.image,
         ingredients: drinkIsExist.drink_details.map(fruitItem => ({
           fruit_id: fruitItem?.fruit?.fruit_id,
           fruit_name: fruitItem?.fruit?.fruit_name,
@@ -163,12 +165,14 @@ class FruitController {
       const {
         drink_name,
         description,
+        image,
         ingredients
       } = req.body;
 
       const retriviedDrink = await drink.create({
         drink_name,
-        description
+        description,
+        image
       });
 
       let retriviedDrinkDetail;
@@ -204,6 +208,7 @@ class FruitController {
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
         descriotion: drink.description,
+        image: drink.image,
         ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem.fruit?.fruit_id,
           fruit_name: fruitItem.fruit?.fruit_name
@@ -229,6 +234,7 @@ class FruitController {
       const {
         drink_name,
         description,
+        image,
         ingredients
       } = req.body;
 
@@ -248,6 +254,8 @@ class FruitController {
         )
       })
 
+      console.log(JSON.stringify(drinkAlreadyRegistered, null, 2));
+
       if(drinkAlreadyRegistered && drinkAlreadyRegistered.drink_id !== Number(id)){
         return res
           .status(409)
@@ -258,7 +266,8 @@ class FruitController {
 
       const retriviedDrink = await drink.update({
         drink_name,
-        description
+        description,
+        image
       }, {
         where: {
           drink_id: id
@@ -323,6 +332,7 @@ class FruitController {
           drink_id: drink.drink_id,
           drink_name: drink.drink_name,
           descriotion: drink.description,
+          image: drink.image,
           ingredients: drink.drink_details.map(fruitItem => ({
             fruit_id: fruitItem.fruit?.fruit_id,
             fruit_name: fruitItem.fruit?.fruit_name
@@ -394,6 +404,7 @@ class FruitController {
         drink_id: drink.drink_id,
         drink_name: drink.drink_name,
         descriotion: drink.description,
+        image: drink.image,
         ingredients: drink.drink_details.map(fruitItem => ({
           fruit_id: fruitItem.fruit?.fruit_id,
           fruit_name: fruitItem.fruit?.fruit_name
@@ -472,7 +483,8 @@ class FruitController {
           response  = {
             drink_id: response.drink.drink_id,
             drink_name: response.drink.drink_name,
-            description: response.drink.description
+            description: response.drink.description,
+            image: response.drink.image,
           }
 
           return res
